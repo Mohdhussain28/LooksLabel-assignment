@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>User Registration</title>
+    <link rel="stylesheet" type="text/css" href="./style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h2>Register Your Mobile Number</h2>
+        <form action="registration_process.php" method="POST" onsubmit="sendPhoneNumber(event)">
+            <label for="mobile">Mobile Number:</label>
+            <input type="text" id="mobile" name="mobile" required>
+            <button type="submit">Register</button>
+        </form>
+    </div>
+
+    <script>
+        function sendPhoneNumber(event) {
+            event.preventDefault();
+
+            const mobileNumber = document.getElementById('mobile').value;
+
+            const apiEndpoint = 'http://127.0.0.1:5001/assignmentnumber/us-central1/app/whatsapp';
+
+            const data = {
+                From: mobileNumber
+            };
+            fetch(apiEndpoint, {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    console.log(responseData);
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+    </script>
+</body>
+
+</html>
