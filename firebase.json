@@ -1,11 +1,24 @@
 {
-  "functions": {
-    "source": "functions",
-    "port": 5001
-  },
+  "functions": [
+    {
+      "source": "functions",
+      "port": 5001,
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ]
+    }
+  ],
   "emulators": {
     "functions": {
       "port": 5001
     }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   }
 }

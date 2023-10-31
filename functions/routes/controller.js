@@ -85,23 +85,62 @@ router.post('/whatsapp', async (req, res) => {
         });
 });
 
-router.post("/data-entry", async (req, res) => {
+router.post('/data-entry', async (req, res) => {
+    const setNumber = req?.query.setNumber;
+    if (!setNumber || setNumber == 0) {
+        res.status(400).json({ message: "please enter valid number" })
+    }
     try {
-        for (let i = 1; i <= 1000; i++) {
-            const setDocRef = firestore.collection("DummyData").doc(`set${i}`);
+        for (let i = 1; i <= setNumber; i++) {
+            const setDocRef = firestore.collection('DummyData').doc(`Set${i}`);
 
-            setDocRef.set({
-                [`${i}A`]: { subSet1: `Data for set${i}A subSet1` },
-                [`${i}B`]: { subSet2: `Data for set${i}B subSet2` }
+            await setDocRef.set({
+                name: `Set${i}`,
+            });
+
+            await setDocRef.collection('subSets').doc(`Set${i}A`).set({
+                subSet1: `Data for Set${i}A subSet1`,
+            });
+
+            await setDocRef.collection('subSets').doc(`Set${i}B`).set({
+                subSet2: `Data for Set${i}B subSet2`,
             });
         }
-        res.status(200).json({ message: "success" })
 
+        res.status(201).json({ message: 'Data added successfully' });
     } catch (error) {
-        console.log(error)
-        res.status(500).json({ err: error });
+        console.error(error);
+        res.status(500).json({ error: 'Failed to add data' });
+    }
+});
+
+router.get('/query', async (req, res) => {
+    const setNumber = req.query.setNumber;
+
+    if (!setNumber) {
+        return res.status(400).json({ message: 'Please provide a valid setNumber' });
     }
 
-})
+    try {
+        const setDocRef = firestore.collection('DummyData').doc(`Set${setNumber}`);
+        const subSetsQuery = await setDocRef.collection('subSets').get();
+
+        const results = [];
+
+        subSetsQuery.forEach((doc) => {
+            const data = doc.data();
+            results.push(data);
+        });
+        if (results.length == 0) {
+            res.status(404).json({ message: "not available" })
+        }
+
+        res.status(200).json({ message: 'Success', data: results });
+    } catch (error) {
+        console.error('Error getting documents: ', error);
+        res.status(500).json({ message: 'An error occurred', error: error });
+    }
+});
+
 
 module.exports = router;
