@@ -2,10 +2,11 @@ const express = require('express');
 const admin = require('firebase-admin');
 const router = express.Router();
 const twilio = require('twilio');
+const client = new twilio(process.env.accountSid, process.env.authToken);
 require('dotenv').config({ path: './config.env' })
 
-const client = new twilio(process.env.accountSid, process.env.authToken);
 const firestore = admin.firestore();
+const batch = firestore.batch();
 
 router.post('/whatsapp', async (req, res) => {
     const message = req.body.Body;
@@ -86,7 +87,7 @@ router.post('/whatsapp', async (req, res) => {
 });
 
 router.post('/data-entry', async (req, res) => {
-    const setNumber = req?.query.setNumber;
+    const setNumber = req?.query?.setNumber;
     if (!setNumber || setNumber == 0) {
         res.status(400).json({ message: "please enter valid number" })
     }
@@ -94,18 +95,22 @@ router.post('/data-entry', async (req, res) => {
         for (let i = 1; i <= setNumber; i++) {
             const setDocRef = firestore.collection('DummyData').doc(`Set${i}`);
 
-            await setDocRef.set({
+            batch.set(setDocRef, {
                 name: `Set${i}`,
             });
 
-            await setDocRef.collection('subSets').doc(`Set${i}A`).set({
+            const subSetARef = setDocRef.collection('subSets').doc(`Set${i}A`);
+            batch.set(subSetARef, {
                 subSet1: `Data for Set${i}A subSet1`,
             });
 
-            await setDocRef.collection('subSets').doc(`Set${i}B`).set({
+            const subSetBRef = setDocRef.collection('subSets').doc(`Set${i}B`);
+            batch.set(subSetBRef, {
                 subSet2: `Data for Set${i}B subSet2`,
             });
         }
+
+        await batch.commit();
 
         res.status(201).json({ message: 'Data added successfully' });
     } catch (error) {
